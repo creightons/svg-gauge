@@ -115,3 +115,7 @@ palette.innerHTML = '';
 palette.innerHTML += ticks;
 palette.innerHTML += arc;
 
+
+var triangle = "<path d='M145 95 L150 25 L155 95 Z' fill='green' stroke='green' stroke-width='1' />";
+
+palette.innerHTML += triangle;
