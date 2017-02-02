@@ -4,25 +4,19 @@
 	<meta charset='utf-8'>
 </head>
 <body>
-	<div id='gauge1'>
+	<div id='gauge1' class='gauge'>
 		<svg id='palette' width='300' height='160' />
 	</div>
-	<div id='gauge2'></div>
+	<div id='gauge2' class='gauge'></div>
+	<div id='gauge3' class='gauge'></div>
 	<style>
-		#gauge1 {
-			text-align: center;
-		}
-		
-		#gauge2 {
-			text-align: center;
-		}
-		
+		.gauge { text-align: center; }
+
 		#slider {
 			display: block;
 			margin: 0 auto;
 		}
 	</style>
-	<script src='gauge.js'></script>
-	<script src='gauge2.js'></script>
+	<script src='public/build.js'></script>
 </body>
 </html>

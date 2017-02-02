@@ -74,21 +74,79 @@ function getAngle(angle) {
 	return angle % 360;
 }
 
-function getTick(angle, radius, centerX, centerY) {
+
+
+function getArc(x, y, radius, gap, width, n) {
+	function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+		var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+
+		return {
+			x: centerX + (radius * Math.cos(angleInRadians)),
+			y: centerY + (radius * Math.sin(angleInRadians))
+		};
+	}
+
+	function describeArc(x, y, radius, startAngle, endAngle){
+		// Assume 
+		startAngle -= 90;
+		endAngle-= 90;
+		var start = polarToCartesian(x, y, radius, endAngle);
+		var end = polarToCartesian(x, y, radius, startAngle);
+		var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+		var d = [
+			"M", start.x, start.y, 
+			"A", radius, radius, 0, largeArcFlag, 0, end.x, end.y
+		].join(" ");
+		return d;       
+	}
+
+	var i,
+		length = 225,
+		color = 'gray',
+		startAngle,
+		endAngle,
+		sectionAngle,
+		pathD,
+		sector,
+		sectorData = [];
+
+	sectionAngle = ( length - ( gap * (n-1) ) ) / n;
+	startAngle = -45;
+	endAngle = sectionAngle;
+	for (i = 0; i < n; i++) {
+		pathD = describeArc(x, y, radius, startAngle, endAngle);
+		sector = "<path fill='none' stroke='" + color + "' stroke-width='" + width + "' d='" + pathD + "' />";
+		sectorData.push(sector);
+		startAngle = endAngle + gap;
+		endAngle = startAngle + sectionAngle;
+	}
+	
+	return sectorData.join('');
+}
+
+
+
+function getTick(angle, radius, centerX, centerY, major) {
 	var tickX1,
 		tickX2,
 		tickY1,
 		tickY2,
-		tickInnerRadius = 0.7 * radius,
+		innerRadius,
+		tickInnerRadiusMajor = 0.7 * radius,
+		tickInnerRadiusMinor = 0.8 * radius,
 		tickOuterRadius = 0.9 * radius,
 		coordinates,
 		width = 0.01 * radius,
 		template
 	;
 	
+	innerRadius = major
+		? tickInnerRadiusMajor
+		: tickInnerRadiusMinor;
+	
 	coordinates = polarToCartesian(
 		angle,
-		tickInnerRadius,
+		innerRadius,
 		centerX,
 		centerY
 	);
@@ -106,7 +164,16 @@ function getTick(angle, radius, centerX, centerY) {
 	tickX2 = coordinates.x;
 	tickY2 = coordinates.y;	
 	
-	template = `<line x1='${tickX1}' y1='${tickY1}' x2='${tickX2}' y2='${tickY2}' stroke='gray' stroke-width='${width}' />`;
+	template = `
+		<line
+			x1='${tickX1}'
+			y1='${tickY1}'
+			x2='${tickX2}'
+			y2='${tickY2}'
+			stroke='gray'
+			stroke-width='${width}'
+		/>
+	`;
 	
 	return template;
 }
@@ -116,9 +183,10 @@ function Gauge(el, radius) {
 	var sideLength = 2 * (radius + 10),
 		outerRadius = radius,
 		innerRadius = 0.95 * radius,
+		centerY,
 		centerX = centerY = radius + 10,
 		needleWidth = 0.04 * innerRadius,
-		needleHeight = 0.95 * innerRadius,
+		needleHeight = 0.85 * innerRadius,
 		needleCenterRadius = 0.04 * innerRadius,
 		//needle coordinates
 		x1 = centerX - (needleWidth / 2),
@@ -138,7 +206,7 @@ function Gauge(el, radius) {
 		readingFontSize = 0.3 * radius,
 		startAngle = 225,
 		degreesToTravel = 270, // cover 3/4 of a circle
-		tickCount = 20,
+		tickCount = 26,
 		angleChange = (degreesToTravel / tickCount),
 		currentAngle,
 		ticks = [],
@@ -160,10 +228,11 @@ function Gauge(el, radius) {
 		valueStep = ( maxValue - minValue ) / numValues
 	;
 	
-	for (key in needleCSS) {
+	for (var key in needleCSS) {
 		needleStyles += `${key}: ${needleCSS[key]};`;
 	}
 	
+	var major = true;
 	for (i = 0; i <= tickCount; i++) {
 		// Subtracting angleChange because the ticks are drawn in a clockwise
 		// fashion, but the angles are measured Counter Clockwise starting from
@@ -178,13 +247,15 @@ function Gauge(el, radius) {
 			currentAngle,
 			innerRadius,
 			centerX,
-			centerY
+			centerY,
+			major
 		));
+		
+		// alternate between major and minor ticks
+		major = !major;
 	}
 
 	tickString = ticks.join('');
-
-
 
 	for (i = 0; i <= numValues; i += 1) {
 		currentAngle = startAngle - ( i * valueAngleChange );
@@ -209,10 +280,21 @@ function Gauge(el, radius) {
 	
 	tickValueString = tickValues.join('');
 	
+	var arc = getArc(
+		centerX,
+		centerY,
+		0.9 * innerRadius,
+		0,
+		0.02 * innerRadius,
+		1
+	);
+		
+	
 	gauge = `
 		<svg width='${sideLength}' height='${sideLength}'>
-			<circle cx='${centerX}' cy='${centerY}' r='${outerRadius}' fill='gray' />
+			<circle cx='${centerX}' cy='${centerY}' r='${outerRadius}' fill='black' />
 			<circle cx='${centerX}' cy='${centerY}' r='${innerRadius}' fill='white' />
+			${arc}
 			<g>
 				${tickString}
 				${tickValueString}
@@ -271,7 +353,6 @@ function addSlider(el, min, max, needle, reading) {
 		var angle = ( ( 270 * parseFloat(value) ) / (max - min) ) - 135;
 		needle.style.transform = `rotate(${angle}deg)`;
 		reading.innerHTML = value;
-		debugger;
 	}
 	
 	sliderEl.addEventListener('input', handleChange);
@@ -280,6 +361,6 @@ function addSlider(el, min, max, needle, reading) {
 }
 
 Gauge(
-	document.querySelector('#gauge2'),
+	document.querySelector('#gauge3'),
 	100
 );
