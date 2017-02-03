@@ -55,7 +55,7 @@ function polarToCartesian(angle, radius, centerX, centerY) {
 		y = centerY - (radius * Math.sin(referenceAngle));
 	}
 	else if (270 < angle && angle < 360) {
-		referenceAngle = degreeToRadian(angle - 360
+		referenceAngle = degreeToRadian(angle - 270);
 		x = centerX + (radius * Math.cos(referenceAngle));
 		y = centerY + (radius * Math.sin(referenceAngle));
 	}
@@ -107,10 +107,14 @@ function getArc(x, y, radius, startAngle, endAngle, width, color) {
 		pathD,
 		arc;
 	
-	start = polarToCartesian(x, y, radius, endAngle);
-	end = polarToCartesian(x, y, radius, startAngle);
+	// Need to swap the start and end angles to draw the arc properly.
+	// The arc is drawn Counter-Clockwise between the points, but our angles
+	// are specified according to a convention that Clockwise is the positive
+	// direction.
+	start = polarToCartesian(endAngle, radius, x, y);
+	end = polarToCartesian(startAngle, radius, x, y);
 
-	argeArcFlag = (endAngle - startAngle) <= 180 ? "0" : "1",
+	largeArcFlag = (endAngle - startAngle) <= 180 ? "0" : "1",
 	
 	pathD = [
 		"M", start.x, start.y, 
@@ -125,6 +129,8 @@ function getArc(x, y, radius, startAngle, endAngle, width, color) {
 			d='${pathD}'
 		/>
 	`;
+	
+	return arc;
 }
 
 /*
@@ -157,13 +163,9 @@ function getTick(angle, radius, x, y, length, width, color) {
 		y2,
 		innerRadius = (1 - length) * radius,
 		coordinates,
-		template
+		tick
 	;
-	
-	innerRadius = major
-		? tickInnerRadiusMajor
-		: tickInnerRadiusMinor;
-	
+		
 	coordinates = polarToCartesian(
 		angle,
 		innerRadius,
@@ -176,7 +178,7 @@ function getTick(angle, radius, x, y, length, width, color) {
 	
 	coordinates = polarToCartesian(
 		angle,
-		tickOuterRadius,
+		radius,
 		x,
 		y
 	);
@@ -184,7 +186,7 @@ function getTick(angle, radius, x, y, length, width, color) {
 	x2 = coordinates.x;
 	y2 = coordinates.y;	
 	
-	template = `
+	tick = `
 		<line
 			x1='${x1}'
 			y1='${y1}'
@@ -195,7 +197,88 @@ function getTick(angle, radius, x, y, length, width, color) {
 		/>
 	`;
 	
-	return template;
+	return tick;
+}
+
+/*
+Generates a tick value reading at the location specified.
+
+The text is position at a distance relative to a supplied
+circle center.
+
+The angles are measured starting from the bottom y-axis as 0 degrees
+and moving clockwise as the positive direction.
+
+Parameters:
+
+angle - the position of the text in degrees relative to the circle center
+radius - the radius from the circle center in pixels
+x - the circle center X value in pixels
+y - the circle center Y value in pixels
+value - the value to display (Number type)
+fontSize - the size of the text in pixels
+fontFamily - the font type to show the reading in
+
+Returns:
+
+A <text /> tag centered at the provided location.
+*/
+function getTickValue(angle, radius, x, y, value, fontSize, fontFamily) {
+	let coordinates = polarToCartesian(angle, radius, x, y);
+	let tickValue = `
+		<text
+			x='${coordinates.x}'
+			y='${coordinates.y}'
+			text-anchor='middle'
+			alignment-baseline='middle'
+			font-size='${fontSize}'
+			font-family='${fontFamily}'
+		>
+			${value.toFixed()}
+		</text>
+	`;
+	
+	return tickValue
+}
+
+/*
+Generates a needle pointing directly up. The needle starts
+at the coordinates of the specified circle center.
+
+Parameters:
+
+height - the height of the needle in pixels
+width - the width of the needle in pixels,
+x - the circle center X value in pixels
+y - the circle center Y value in pixels
+color - the color of the needle (a hex value)
+*/
+function getNeedle(height, width, x, y, color) {
+	let x1 = x - (width / 2),
+		y1 = y,
+		x2 = x,
+		y2 = y - height,
+		x3 = x + (width / 2),
+		y3 = y;
+	
+	let needle = `
+		<circle
+			cx='${x}'
+			cy='${y}'
+			r='${width}'
+			stroke='${color}'
+			fill='${color}'
+		/>
+		<path
+			id='gauge-needle'
+			d='M${x1} ${y1} L${x2} ${y2} L${x3} ${y3} Z'
+			fill='${color}'
+			stroke='${color}'
+			stroke-width='1'
+		/>
+	`;
+	
+	return needle;
 }
 
 module.exports = {
@@ -203,4 +286,6 @@ module.exports = {
 	polarToCartesian,
 	getArc,
 	getTick,
-}
+	getTickValue,
+	getNeedle,
+};
