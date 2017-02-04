@@ -192,7 +192,7 @@ function getTick(angle, radius, x, y, length, width, color) {
 			y1='${y1}'
 			x2='${x2}'
 			y2='${y2}'
-			stroke='gray'
+			stroke='${color}'
 			stroke-width='${width}'
 		/>
 	`;
