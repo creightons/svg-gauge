@@ -3,5 +3,5 @@ let gauge1 = require('./gauge'),
 	gauge3 = require('./gauge3'),
 	gauge4 = require('./gauge4'),
 	gauge5 = require('./gauge5'),
-	gauge6 = require('./gauge6');
-	
+	gauge6 = require('./gauge6'),
+	gauge7 = require('./gauge7');
