@@ -1,13 +1,5 @@
-let {
-	polarToCartesian,
-	getArc,
-	getTick,
-	getTickValue,
-	getNeedle,
-} = require('./utils');
-
-let utils = require('./utils-raphael');
-let Raphael = require('raphael');
+let utils = require('./utils-raphael'),
+	Raphael = require('raphael');
 
 function drawGauge(radius) {
 	let width = (2 * radius) + 50,
@@ -136,7 +128,7 @@ function drawGauge(radius) {
 	/***************************
 	* Get Gauge Reading
 	***************************/	
-	utils.getTickValue(
+	let reading = utils.getTickValue(
 		paper,
 		0,
 		0.6 * radius,
@@ -150,7 +142,7 @@ function drawGauge(radius) {
 	/***************************
 	* Get Needle
 	***************************/	
-	utils.getNeedle(
+	let needle = utils.getNeedle(
 		paper,
 		1 * radius,
 		0.05 * radius,
@@ -158,7 +150,18 @@ function drawGauge(radius) {
 		centerY,
 		needleColor
 	);
+	function getTransform(angle) {
+		return `r${angle}, ${centerX}, ${centerY}`;
+	}
+	function animation() {
+		let angle = (Math.random() * 270) - 135;
+		needle.animate({
+			transform: getTransform(angle),
+		}, 500 );
+	}
+	needle.animate({transform: getTransform(-135)},  500);
+	setInterval(animation, 1000);
 }
 
-drawGauge(200);
+drawGauge(50);
 

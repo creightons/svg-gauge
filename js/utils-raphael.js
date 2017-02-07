@@ -214,7 +214,11 @@ fontFamily - the font type to show the reading in
 
 Returns:
 
-A <text /> tag centered at the provided location.
+A text object for animation.
+
+Side Effects:
+
+Adds a text tag to the Raphael paper object
 */
 function getTickValue(paper, angle, radius, x, y, value, fontSize, fontFamily) {
 	let coordinates = polarToCartesian(angle, radius, x, y);
@@ -225,6 +229,8 @@ function getTickValue(paper, angle, radius, x, y, value, fontSize, fontFamily) {
 		'font-size': fontSize,
 		'font-family': fontFamily,
 	});
+	
+	return text;
 }
 
 /*
@@ -242,7 +248,7 @@ color - the color of the needle (a hex value)
 
 Returns:
 
-N/A
+Returns the needle for animation
 
 Side Effect:
 
@@ -266,6 +272,8 @@ function getNeedle(paper, height, width, x, y, color) {
 	
 	let needleBase = paper.circle(x, y, width);
 	needleBase.attr({ stroke: color, fill: color });
+	
+	return needle;
 }
 
 module.exports = {
