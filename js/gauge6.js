@@ -14,7 +14,7 @@ function drawGauge(radius) {
 		startAngle = 45,
 		endAngle = 315,
 		gaugeColor = 'gray',
-		needleColor = '#5ef913'
+		needleColor = '#000'
 	;
 	
 	/***************************
@@ -55,35 +55,37 @@ function drawGauge(radius) {
 	let innerAngleStep = (endAngle - startAngle) / 3,
 		red = '#FFAAAA',
 		yellow = '#F2F200',
-		green = '#62D800';
+		green = '#62D800',
+		innerArcRadius = 0.948 * radius,
+		innerArcWidth = 0.09 * radius;
 	
 	let innerArc1 = getArc(
 		centerX,
 		centerY,
-		0.965 * radius,
+		innerArcRadius,
 		startAngle,
 		startAngle + innerAngleStep,
-		0.06 * radius,
+		innerArcWidth,
 		green
 	);
 	
 	let innerArc2 = getArc(
 		centerX,
 		centerY,
-		0.965 * radius,
+		innerArcRadius,
 		startAngle + innerAngleStep,
 		startAngle + (2 * innerAngleStep),
-		0.06 * radius,
+		innerArcWidth,
 		yellow
 	);
 	
 	let innerArc3 = getArc(
 		centerX,
 		centerY,
-		0.965 * radius,	
+		innerArcRadius,	
 		startAngle + (2 * innerAngleStep),
 		endAngle,
-		0.06 * radius,
+		innerArcWidth,
 		red
 	);
 	
@@ -97,7 +99,7 @@ function drawGauge(radius) {
 		maxValue = 5000,
 		valueStep = (maxValue - minValue) / tickValueCount,
 		currentValue,
-		fontSize = 0.08 * radius,
+		fontSize = 0.1 * radius,
 		fontFamily = 'Helvetica';
 	
 	for (let j = 0; j <= tickValueCount; j++) {
